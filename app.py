@@ -40,14 +40,19 @@ session_svc = InMemorySessionService()
 # A random ID we use client-side to know when to clear localStorage
 server_session_id = str(uuid.uuid4())
 
+
+# api to render home page 
 @app.route('/')
 def home():
     return render_template('home.html')
+
+# api to render form page
 
 @app.route('/form')
 def form():
     return render_template('form.html')
 
+# api to render chat page
 @app.route('/submit-form', methods=['POST'])
 def submit_form():
     data = request.json or {}
@@ -75,6 +80,7 @@ def submit_form():
         'lead_name': name
     })
 
+#  to render chat page GET api when its first interacted 
 @app.route('/chat', methods=['GET'])
 def chat_get():
     # Render chat.html, passing lead_id & lead_name from query string
@@ -89,6 +95,10 @@ def chat_get():
         lead_name=lead_name,
         server_session_id=server_session_id
     )
+
+# POST api to handle chat messages
+# This is where the agent will respond to user messages
+# and also handle the follow-up messages from agent
 
 @app.route('/chat', methods=['POST'])
 def chat_post():
@@ -115,8 +125,13 @@ def chat_post():
                 state={"name": data.get('lead_name', '')}
             )
 
-    runner = runners[lead_id]
-    content = types.Content(role='user', parts=[types.Part(text=user_msg)])
+    runner = runners[lead_id] # Get the runner for this lead_id
+
+    # Packaging the lead’s input into an ADK Content object (role='user') so the agent runner can process it
+
+    content = types.Content(role='user', parts=[types.Part(text=user_msg)])            
+
+    # Send the user message to the agent
     events  = runner.run(
         user_id=lead_id,
         session_id=lead_id,
@@ -127,8 +142,10 @@ def chat_post():
     try:
         ev = next(events)
         reply = ev.content.parts[0].text
+
         # record that we just sent an agent message to the lead
         last_agent_ts[lead_id] = datetime.now(timezone.utc)
+
         # reset the follow-up flag so a fresh 60s will be counted
         followup_sent.pop(lead_id, None)
     except StopIteration:
@@ -136,6 +153,7 @@ def chat_post():
 
     return jsonify(message=reply)
 
+# POST api to handle chat messages and trigger in start
 @app.route('/chat-message', methods=['POST'])
 def chat_message():
     data      = request.json or {}
@@ -172,8 +190,10 @@ def chat_message():
     try:
         ev = next(events)
         reply = ev.content.parts[0].text
+
         # record that we just sent an agent message to the lead
         last_agent_ts[lead_id] = datetime.now(timezone.utc)
+
         # reset the follow-up flag so a fresh 60s will be counted
         followup_sent.pop(lead_id, None)
     except StopIteration:
@@ -181,7 +201,7 @@ def chat_message():
 
     return jsonify(message=reply)
 
-
+# POST api to fetch follow-up messages
 @app.route('/fetch_followups', methods=['POST'])
 def fetch_followups():
     data    = request.json or {}
@@ -191,9 +211,9 @@ def fetch_followups():
     msgs = followup_queue.pop(lead_id, [])
     return jsonify(messages=msgs)
 
-
+# Follow Up helper function to follow up after 24 hours
 def follow_up_checker():
-    """Every 5s, look for leads that are still 'pending' and 60s past last prompt."""
+    """Every 3s, look for leads that are still 'pending' and 60s past last prompt."""
     while True:
         now = datetime.now(timezone.utc)
         # read CSV once per loop
@@ -202,18 +222,25 @@ def follow_up_checker():
             # skip if we already sent follow-up
             if followup_sent.get(lead_id):
                 continue
+
             # skip if status changed in CSV
             row = df[df['lead_id'] == lead_id]
             if row.empty or row.iloc[0]['status'] != 'pending':
                 continue
+
             # only fire if 60s have passed
             if now - ts >= timedelta(seconds=FOLLOW_UP_TIMER):
                 # inject the __followup__ trigger
                 runner = runners.get(lead_id)
                 if runner:
+
+                    # trigger follow up from agent
                     content = types.Content(role='user', parts=[types.Part(text="__followup__")])
+                    
                     events  = runner.run(user_id=lead_id, session_id=lead_id, new_message=content)
+
                     ev = next(events, None)
+
                     if ev and ev.content and ev.content.parts:
                         msg = ev.content.parts[0].text
                         followup_queue.setdefault(lead_id, []).append(msg)
@@ -221,7 +248,7 @@ def follow_up_checker():
                 followup_sent[lead_id] = True
         time.sleep(3)
 
-# start it
+# runing the thread  startup
 threading.Thread(target=follow_up_checker, daemon=True).start()
 
 
