@@ -30,8 +30,8 @@ Handles multiple leads concurrently, walks each lead through a structured inform
 
 1. **Clone the repository**  
    ```bash
-   git clone https://github.com/your-username/ai-sales-assistant.git
-   cd ai-sales-assistant
+   git clone https://github.com/sohail9221/Sales-Agent-task-Z360-.git
+   cd Sales-Agent-task-Z360-
 
 2. **Create & activate a virtual environment**
     ```bash
@@ -49,7 +49,7 @@ Handles multiple leads concurrently, walks each lead through a structured inform
 
 By default, Flask runs at http://127.0.0.1:5000.
 
-## Usage Guide
+## 📝 Usage Guide
 
 1. **Submit a Lead**
 Visit http://127.0.0.1:5000/form, enter a name, and submit.
@@ -64,7 +64,7 @@ Reply Yes → Agent asks age → then country → then interest.
 Reply No → Agent ends the conversation and marks status as no_response.
 
 4. **Follow-Up**
-If you don’t reply within 60 s at any step, the agent automatically follows up.
+If you don’t reply within 24 hours at any step, the agent automatically follows up.
 
 5. **Check CSV Output**
 Open leads.csv to see each row updated with age, country, interest, and final status (pending, secured, or no_response).
@@ -84,7 +84,7 @@ Open leads.csv to see each row updated with age, country, interest, and final st
         │   └── chat.html          # Chat UI
         └── static/                # (optional) CSS/JS assets
 ```
-##  Design Decisions
+## 📐 Design Decisions
 
 **Flask for Backend:**
 
