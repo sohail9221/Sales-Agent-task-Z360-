@@ -1,5 +1,4 @@
 from flask import Flask, render_template, jsonify, request, url_for
-from flask_cors import CORS
 import uuid
 import os
 import pandas as pd
@@ -11,7 +10,7 @@ from google.genai import types
 from datetime import datetime, timezone, timedelta
 import threading, time
 app = Flask(__name__)
-CORS(app)
+
 app.secret_key = 'your_secret_key'
 app.permanent_session_lifetime = timedelta(days=7)
 
