@@ -70,7 +70,7 @@ If you don’t reply within 60 s at any step, the agent automatically follows up
 Open leads.csv to see each row updated with age, country, interest, and final status (pending, secured, or no_response).
 
 
-```markdown
+
 ## 📁 Project Structure
 
 ```plaintext
