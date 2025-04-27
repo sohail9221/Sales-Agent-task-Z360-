@@ -70,6 +70,11 @@ If you don’t reply within 24 hours at any step, the agent automatically follow
 Open leads.csv to see each row updated with age, country, interest, and final status (pending, secured, or no_response).
 
 
+## 🔄 Simulation
+A simple Python script (simulate_lead.py) is provided to automate form-submission, chat interactions, and follow-up pauses.
+
+## ✅ Test Cases
+Basic test scenarios cover full flow, immediate decline, and follow-up behavior. See testing_agent.py for automated pass/fail reports.
 
 ## 📁 Project Structure
 ```
@@ -78,6 +83,8 @@ Open leads.csv to see each row updated with age, country, interest, and final st
         ├── sales_agent.py         # Custom ADK Agent implementation
         ├── requirements.txt       # Python dependencies
         ├── leads.csv              # Stores all lead data
+        ├── simulate_lead.py       # Script to simulate leads & follow-up delays
+        ├── test_agent.py          # Automated test suite with PASS/FAIL output
         ├── templates/
         │   ├── base.html
         │   ├── form.html          # Lead submission form
