@@ -16,7 +16,7 @@ app.permanent_session_lifetime = timedelta(days=7)
 
 # In-memory map of lead_id → Runner
 runners = {}
-# Follow up with lead after this time 
+# Follow up with lead after this time (24 hours) simluating in 60 sec
 FOLLOW_UP_TIMER = 60
 
 # track when we last sent an agent prompt (greeting or question)
@@ -219,7 +219,7 @@ def follow_up_checker():
                         followup_queue.setdefault(lead_id, []).append(msg)
                 # mark it sent so we don’t loop again
                 followup_sent[lead_id] = True
-        time.sleep(5)
+        time.sleep(3)
 
 # start it
 threading.Thread(target=follow_up_checker, daemon=True).start()
