@@ -86,17 +86,34 @@ Open leads.csv to see each row updated with age, country, interest, and final st
 ```
 ##  Design Decisions
 
-**Explicit lead_id Passing**
-Front-end sends lead_id on every request, avoiding shared Flask session cookies and mixing between tabs.
+**Flask for Backend:**
 
-**In-Memory Runner Map**
-A global runners: Dict[lead_id, Runner] holds each lead’s ADK Runner and session context.
+Flask was selected as the web framework due to its lightweight nature, quick setup, and flexibility, making it ideal for a prototype conversational agent without introducing unnecessary complexity.
 
-**CSV for Persistence**
-Chosen for simplicity and human readability—no external database required.
+**ADK Integration in sales_agent.py:**
 
-**Background Follow-Up Thread**
-A single daemon thread scans inactivity and enqueues follow-ups, ensuring timely reminders.
+A dedicated file was created to handle the AI agent logic separately (sales_agent.py) for better code organization, easier scalability, and to keep the server (app.py) focused purely on handling HTTP requests.
+
+**In-Memory Context Management:**
+
+Conversations are managed independently per user session without persistent storage to ensure simplicity and faster response times. This also meets the concurrent conversation requirement without needing external databases.
+
+**Multi-Tab, Concurrent Conversations:**
+
+Since each browser tab/session maintains its own HTTP connection and conversation context, explicit multi-threading was not necessary at the code level. Flask's built-in server handles concurrent client sessions adequately for this scale.
+
+**Simple CSV (leads.csv) for Lead Storage:**
+
+Instead of setting up a full database, a simple CSV file was used to store leads, optimizing for development speed while maintaining human readability and portability.
+
+**Minimalist Frontend:**
+
+Basic HTML templates (form.html, chat.html) were used with minimal styling to simulate user interactions without investing time into frontend frameworks, focusing the project scope on backend and agent intelligence.
+
+**Single Entry Point (app.py):**
+
+Running the application requires only executing app.py, simplifying the deployment and usage for developers and reviewers.
+
 
 ## License
 This project is MIT-licensed. Feel free to use or modify.
