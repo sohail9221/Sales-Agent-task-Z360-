@@ -72,19 +72,18 @@ Open leads.csv to see each row updated with age, country, interest, and final st
 
 
 ## 📁 Project Structure
-
-```plaintext
-.
-├── app.py                 # Flask server & ADK integration
-├── sales_agent.py         # Custom ADK Agent implementation
-├── requirements.txt       # Python dependencies
-├── leads.csv              # Stores all lead data
-├── templates/
-│   ├── base.html
-│   ├── form.html          # Lead submission form
-│   └── chat.html          # Chat UI
-└── static/                # (optional) CSS/JS assets
-
+    ```plaintext
+        .
+        ├── app.py                 # Flask server & ADK integration
+        ├── sales_agent.py         # Custom ADK Agent implementation
+        ├── requirements.txt       # Python dependencies
+        ├── leads.csv              # Stores all lead data
+        ├── templates/
+        │   ├── base.html
+        │   ├── form.html          # Lead submission form
+        │   └── chat.html          # Chat UI
+        └── static/                # (optional) CSS/JS assets
+    ```
 ##  Design Decisions
 
 **Explicit lead_id Passing**
