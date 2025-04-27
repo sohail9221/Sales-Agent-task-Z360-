@@ -71,10 +71,15 @@ Open leads.csv to see each row updated with age, country, interest, and final st
 
 
 ## 🔄 Simulation
-A simple Python script (simulate_lead.py) is provided to automate form-submission, chat interactions, and follow-up pauses.
+A simple Python script (simulate_lead.py) is provided to automate form-submission, chat interactions, and follow-up pauses. to test Run: 
+    ```bash 
+    python simulate_lead.py 
 
 ## ✅ Test Cases
 Basic test scenarios cover full flow, immediate decline, and follow-up behavior. See testing_agent.py for automated pass/fail reports.
+Run the file with pytest :
+    ```bash
+    pytest testing_cases.py
 
 ## 📁 Project Structure
 ```
