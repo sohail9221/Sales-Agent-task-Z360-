@@ -123,5 +123,21 @@
       addMessage('Sorry, there was an error.', false);
     }
   });
+
+   // poll for follow-ups every 5s
+   setInterval(async () => {
+    const resp = await fetch('/fetch_followups', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ lead_id: leadId })
+    });
+    const { messages } = await resp.json();
+    for (const m of messages) {
+      addMessage(m, false);
+      saveMessage(m, false);
+    }
+  }, 5000);
+
+  
 </script>
 {% endblock %}

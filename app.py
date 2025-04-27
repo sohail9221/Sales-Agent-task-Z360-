@@ -6,9 +6,10 @@ import pandas as pd
 from datetime import timedelta
 from google.adk.sessions import InMemorySessionService
 from google.adk.runners import Runner
-from sales_flow_agent import SalesFlowAgent, CSV_FILE
+from Sales_agent import SalesAgent, CSV_FILE
 from google.genai import types
-
+from datetime import datetime, timezone, timedelta
+import threading, time
 app = Flask(__name__)
 CORS(app)
 app.secret_key = 'your_secret_key'
@@ -16,6 +17,18 @@ app.permanent_session_lifetime = timedelta(days=7)
 
 # In-memory map of lead_id → Runner
 runners = {}
+# Follow up with lead after this time 
+FOLLOW_UP_TIMER = 60
+
+# track when we last sent an agent prompt (greeting or question)
+last_agent_ts: dict[str, datetime] = {}
+
+# ensure we only send one follow-up per pending prompt
+followup_sent: dict[str, bool] = {}
+
+# queue of pending follow-up replies for each lead
+followup_queue: dict[str, list[str]] = {}
+
 
 # Ensure leads.csv exists
 CSV_COLUMNS = ['lead_id', 'name', 'age', 'country', 'interest', 'status']
@@ -89,7 +102,7 @@ def chat_post():
 
     # Initialize runner & ADK session once per lead_id
     if lead_id not in runners:
-        agent = SalesFlowAgent()
+        agent = SalesAgent()
         runners[lead_id] = Runner(
             agent=agent,
             app_name="sales_app",
@@ -115,6 +128,10 @@ def chat_post():
     try:
         ev = next(events)
         reply = ev.content.parts[0].text
+        # record that we just sent an agent message to the lead
+        last_agent_ts[lead_id] = datetime.now(timezone.utc)
+        # reset the follow-up flag so a fresh 60s will be counted
+        followup_sent.pop(lead_id, None)
     except StopIteration:
         reply = "Sorry, no reply from agent."
 
@@ -131,7 +148,7 @@ def chat_message():
 
     # Initialize runner & ADK session once per lead_id
     if lead_id not in runners:
-        agent = SalesFlowAgent()
+        agent = SalesAgent()
         runners[lead_id] = Runner(
             agent=agent,
             app_name="sales_app",
@@ -156,10 +173,59 @@ def chat_message():
     try:
         ev = next(events)
         reply = ev.content.parts[0].text
+        # record that we just sent an agent message to the lead
+        last_agent_ts[lead_id] = datetime.now(timezone.utc)
+        # reset the follow-up flag so a fresh 60s will be counted
+        followup_sent.pop(lead_id, None)
     except StopIteration:
         reply = "Oops, no response from agent."
 
     return jsonify(message=reply)
+
+
+@app.route('/fetch_followups', methods=['POST'])
+def fetch_followups():
+    data    = request.json or {}
+    lead_id = data.get('lead_id')
+    if not lead_id:
+        return jsonify(messages=[])
+    msgs = followup_queue.pop(lead_id, [])
+    return jsonify(messages=msgs)
+
+
+def follow_up_checker():
+    """Every 5s, look for leads that are still 'pending' and 60s past last prompt."""
+    while True:
+        now = datetime.now(timezone.utc)
+        # read CSV once per loop
+        df = pd.read_csv(CSV_FILE)
+        for lead_id, ts in list(last_agent_ts.items()):
+            # skip if we already sent follow-up
+            if followup_sent.get(lead_id):
+                continue
+            # skip if status changed in CSV
+            row = df[df['lead_id'] == lead_id]
+            if row.empty or row.iloc[0]['status'] != 'pending':
+                continue
+            # only fire if 60s have passed
+            if now - ts >= timedelta(seconds=FOLLOW_UP_TIMER):
+                # inject the __followup__ trigger
+                runner = runners.get(lead_id)
+                if runner:
+                    content = types.Content(role='user', parts=[types.Part(text="__followup__")])
+                    events  = runner.run(user_id=lead_id, session_id=lead_id, new_message=content)
+                    ev = next(events, None)
+                    if ev and ev.content and ev.content.parts:
+                        msg = ev.content.parts[0].text
+                        followup_queue.setdefault(lead_id, []).append(msg)
+                # mark it sent so we don’t loop again
+                followup_sent[lead_id] = True
+        time.sleep(5)
+
+# start it
+threading.Thread(target=follow_up_checker, daemon=True).start()
+
+
 
 if __name__ == '__main__':
     app.run(debug=True)
