@@ -76,13 +76,15 @@ A simple Python script (simulate_lead.py) is provided to automate form-submissio
 
 ```bash 
 python simulate_lead.py 
+```
     
 
 ## ✅ Test Cases
 Basic test scenarios cover full flow, immediate decline, and follow-up behavior. See testing_agent.py for automated pass/fail reports.
 Run the file with pytest :
-    ```bash
-    pytest testing_cases.py
+```bash
+pytest testing_cases.py
+```
 
 ## 📁 Project Structure
 ```
