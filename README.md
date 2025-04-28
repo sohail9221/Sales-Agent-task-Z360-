@@ -107,6 +107,10 @@ pytest testing_cases.py
 
 Flask was selected as the web framework due to its lightweight nature, quick setup, and flexibility, making it ideal for a prototype conversational agent without introducing unnecessary complexity.
 
+**Custom Agent Selection (Google ADK):**
+
+A Custom Agent was chosen instead of a Sequential Agent to allow full control over the conversation flow, dynamic branching, and flexible handling of user inputs, aligning better with the sales domain requirements.
+
 **ADK Integration in sales_agent.py:**
 
 A dedicated file was created to handle the AI agent logic separately (sales_agent.py) for better code organization, easier scalability, and to keep the server (app.py) focused purely on handling HTTP requests.
